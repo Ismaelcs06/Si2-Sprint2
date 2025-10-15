@@ -18,7 +18,7 @@ class DocumentoForm(forms.ModelForm):
             "tipoDocumento": forms.Select(attrs={"class": "form-control"}),
             "etapaProcesal": forms.Select(attrs={"class": "form-control"}),
             "nombreDocumento": forms.TextInput(attrs={"class": "form-control"}),
-            "rutaDocumento": forms.ClearableFileInput(attrs={"class": "form-control"}),  # 👈 Archivo real
+            "rutaDocumento": forms.ClearableFileInput(attrs={"class": "form-control"}), 
             "estado": forms.Select(choices=[
                 ("ACTIVO", "Activo"),
                 ("INACTIVO", "Inactivo"),
@@ -36,7 +36,7 @@ class VersionDocumentoForm(forms.ModelForm):
         model = VersionDocumento
         fields = ["rutaArchivo", "comentario"]
         widgets = {
-            "rutaArchivo": forms.ClearableFileInput(attrs={"class": "form-control"}),  # ✅ CORRECTO
+            "rutaArchivo": forms.ClearableFileInput(attrs={"class": "form-control"}),  
             "comentario": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 

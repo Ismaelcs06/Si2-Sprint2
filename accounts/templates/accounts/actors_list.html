@@ -14,18 +14,19 @@
         <label class="form-label mb-0">Filtrar por tipo:</label>
       </div>
       <div class="col-auto">
+        
         <select name="tipo" class="form-select form-select-sm" onchange="this.form.submit()">
-          <option value="">Todos</option>
-          <option value="ABOGADO" {% if tipo == 'ABOGADO' %}selected{% endif %}>Abogado</option>
-          <option value="CLIENTE" {% if tipo == 'CLIENTE' %}selected{% endif %}>Cliente</option>
-          <option value="ASISTENTE" {% if tipo == 'ASISTENTE' %}selected{% endif %}>Asistente</option>
+          <option value="" {% if not tipo %}selected{% endif %}>Todos</option>
+          <option value="ABO"   {% if tipo == 'ABO' %}selected{% endif %}>Abogado</option>
+          <option value="CLI"   {% if tipo == 'CLI' %}selected{% endif %}>Cliente</option>
+          <option value="ASI" {% if tipo == 'ASI' %}selected{% endif %}>Asistente</option>
         </select>
       </div>
     </div>
   </form>
 
-  <!-- Tabla -->
-  <div class="table-responsive">
+  <!-- Tabla -> tarjetas en móvil -->
+  <div class="table-responsive stack-xs table-xs-compact">
     <table class="table table-sm table-hover align-middle shadow-sm">
       <thead class="table-light">
         <tr>
@@ -42,30 +43,47 @@
         {% for item in actores_data %}
           {% with a=item.actor %}
           <tr>
-            <td>{{ a.tipoActor }}</td>
-            <td>{{ a.nombres }} {{ a.apellidoPaterno }} {{ a.apellidoMaterno }}</td>
-            <td>{{ a.ci }}</td>
-            <td>{{ a.telefono }}</td>
-            <td>
+            <td data-label="Tipo">{{ a.tipoActor }}</td>
+
+            <td class="td-wrap" data-label="Nombre completo">
+              {{ a.nombres }} {{ a.apellidoPaterno }} {{ a.apellidoMaterno }}
+            </td>
+
+            <td class="td-nowrap" data-label="CI">{{ a.ci }}</td>
+
+            <td class="td-nowrap" data-label="Teléfono">
+              {{ a.telefono|default:"—" }}
+            </td>
+
+            <td data-label="Usuario">
               {% if a.usuario %}
                 {{ a.usuario.username }}
               {% else %}
                 <span class="text-muted">—</span>
               {% endif %}
             </td>
-            <td>
+
+            <td data-label="Estado">
               {% if a.estadoActor == "ACTIVO" %}
                 <span class="badge bg-success">{{ a.estadoActor }}</span>
               {% else %}
                 <span class="badge bg-secondary">{{ a.estadoActor }}</span>
               {% endif %}
             </td>
-            <td>
+
+            <td data-label="Datos específicos">
               {% if item.info_completa %}
                 <span class="badge bg-success">Completo</span>
               {% else %}
-                <a href="{{ item.enlace_completar }}" class="btn btn-outline-warning btn-sm">
-                  Completar datos
+                <!-- XS: icon-only, SM+: texto -->
+                <a href="{{ item.enlace_completar }}"
+                   class="btn btn-outline-warning btn-sm d-inline d-sm-none"
+                   title="Completar datos">
+                  <i class="fa fa-edit"></i>
+                </a>
+                <a href="{{ item.enlace_completar }}"
+                   class="btn btn-outline-warning btn-sm d-none d-sm-inline-flex">
+                  <i class="fa fa-edit me-1"></i> Completar datos
                 </a>
               {% endif %}
             </td>

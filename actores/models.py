@@ -32,7 +32,7 @@ class Actor(models.Model):
     direccion = models.TextField(blank=True)
     estadoActor = models.CharField(max_length=20, choices=ESTADOS, default="ACTIVO")
 
-    # 🧾 Auditoría
+    #  Auditoría
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -75,7 +75,7 @@ class Abogado(models.Model):
     especialidad = models.CharField(max_length=100, blank=True)
     estadoLicencia = models.CharField(max_length=50, default="VIGENTE")
 
-    # 🧾 Auditoría
+    #  Auditoría
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -107,7 +107,7 @@ class Cliente(models.Model):
     tipoCliente = models.CharField(max_length=10, choices=TIPO_CHOICES)
     observaciones = models.TextField(blank=True)
 
-    # 🧾 Auditoría
+    #  Auditoría
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -138,7 +138,7 @@ class Asistente(models.Model):
     area = models.CharField(max_length=100, blank=True)
     cargo = models.CharField(max_length=100, blank=True)
 
-    # 🧾 Auditoría
+    #  Auditoría
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
