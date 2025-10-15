@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Asignar Actor{% endblock %}
+
+{% block content %}
+<div class="col-lg-8">
+  <h3 class="mb-4">Asignar Actor a {{ usuario.username }}</h3>
+
+  <form method="post" class="card shadow-sm p-4">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="row">
+      {% for field in form %}
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}
+            <small class="text-danger">{{ error }}</small>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-4 d-flex justify-content-between">
+      <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo Expediente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h4>Crear Expediente para el Caso: {{ caso.nroCaso }}</h4>
+  <form method="post" class="card p-3 mt-3">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Guardar</button>
+    <a href="{% url 'casos:expediente_list' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

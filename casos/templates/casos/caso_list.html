@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Listado de Casos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-3">Gestión de Casos</h3>
+  <a href="{% url 'casos:case_create' %}" class="btn btn-primary mb-3">Nuevo Caso</a>
+
+  <!-- 👉 Wrapper responsivo + “modo tarjetas” en móvil -->
+  <div class="table-responsive stack-xs stack-tight" style="--stack-label-w: 120px;">
+    <table class="table table-bordered table-hover table-xs-compact">
+      <thead class="thead-light">
+        <tr>
+          <th>#</th>
+          <th>Nro Caso</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Prioridad</th>
+          <th>Inicio</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for caso in casos %}
+        <tr>
+          <td data-label="#">{{ forloop.counter }}</td>
+          <td data-label="Nro Caso">{{ caso.nroCaso }}</td>
+          <td data-label="Tipo">{{ caso.tipoCaso }}</td>
+          <td data-label="Estado">{{ caso.estado }}</td>
+          <td data-label="Prioridad">{{ caso.prioridad }}</td>
+          <td data-label="Inicio">{{ caso.fechaInicio }}</td>
+          <td class="text-center stack-actions" data-label="Acciones">
+
+            <!-- XS: icon-only -->
+            <a href="{% url 'casos:case_edit' caso.id %}"
+               class="btn btn-warning btn-sm d-inline d-sm-none" title="Editar">
+              <i class="fa fa-edit"></i>
+            </a>
+            <a href="{% url 'casos:equipo_list' caso.id %}"
+               class="btn btn-info btn-sm d-inline d-sm-none" title="Equipo">
+              <i class="fa fa-users"></i>
+            </a>
+            <a href="{% url 'casos:parte_list' caso.id %}"
+               class="btn btn-secondary btn-sm d-inline d-sm-none" title="Partes">
+              <i class="fa fa-list"></i>
+            </a>
+
+            <!-- SM+: texto + icono -->
+            <a href="{% url 'casos:case_edit' caso.id %}"
+               class="btn btn-warning btn-sm d-none d-sm-inline-flex">
+              <i class="fa fa-edit me-1"></i> Editar
+            </a>
+            <a href="{% url 'casos:equipo_list' caso.id %}"
+               class="btn btn-info btn-sm d-none d-sm-inline-flex">
+              <i class="fa fa-users me-1"></i> Equipo
+            </a>
+            <a href="{% url 'casos:parte_list' caso.id %}"
+               class="btn btn-secondary btn-sm d-none d-sm-inline-flex">
+              <i class="fa fa-list me-1"></i> Partes
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No hay casos registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

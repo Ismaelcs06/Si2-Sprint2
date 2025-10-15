@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Expedientes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-3">Expedientes Registrados</h3>
+
+  <!-- 👉 Wrapper responsivo + tarjetas en móvil -->
+  <div class="table-responsive stack-xs stack-tight" style="--stack-label-w: 130px;">
+    <table class="table table-bordered table-hover table-xs-compact">
+      <thead class="thead-light">
+        <tr>
+          <th>#</th>
+          <th>Nro Expediente</th>
+          <th>Caso</th>
+          <th>Estado</th>
+          <th>Fecha Creación</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for exp in expedientes %}
+        <tr>
+          <td data-label="#">{{ forloop.counter }}</td>
+          <td data-label="Nro Expediente">{{ exp.nroExpediente }}</td>
+          <td data-label="Caso">{{ exp.caso.nroCaso }}</td>
+          <td data-label="Estado">{{ exp.estado }}</td>
+          <td data-label="Fecha Creación">{{ exp.fechaCreacion }}</td>
+          <td class="text-center stack-actions" data-label="Acciones">
+            <!-- XS: solo iconos -->
+            <a href="{% url 'casos:carpeta_list' exp.id %}"
+               class="btn btn-info btn-sm d-inline d-sm-none" title="Carpetas">
+              <i class="fa fa-folder"></i>
+            </a>
+            <a href="{% url 'casos:expediente_timeline' exp.id %}"
+               class="btn btn-info btn-sm d-inline d-sm-none" title="Timeline">
+              <i class="fa fa-timeline"></i>
+            </a>
+
+            <!-- SM+: icono + texto -->
+            <a href="{% url 'casos:carpeta_list' exp.id %}"
+               class="btn btn-info btn-sm d-none d-sm-inline-flex">
+              <i class="fa fa-folder me-1"></i> Carpetas
+            </a>
+            <a href="{% url 'casos:expediente_timeline' exp.id %}"
+               class="btn btn-info btn-sm d-none d-sm-inline-flex">
+              <i class="fa fa-timeline me-1"></i> TimeLine
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center">No hay expedientes registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

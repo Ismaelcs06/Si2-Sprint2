@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Línea de Tiempo - {{ expediente.nroExpediente }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h4> Línea de tiempo del expediente {{ expediente.nroExpediente }}</h4>
+  <hr>
+  <div class="timeline">
+    {% for e in eventos %}
+      <div class="mb-3 border-start ps-3">
+        <small class="text-muted">{{ e.fecha|date:"d/m/Y H:i" }}</small><br>
+        <strong>{{ e.tipo }}</strong> — {{ e.descripcion }}<br>
+        {% if e.usuario %}
+          <small class="text-secondary">por {{ e.usuario.username }}</small>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="text-muted text-center">Aún no hay eventos en este expediente.</p>
+    {% endfor %}
+  </div>
+  <a href="{% url 'casos:expediente_list' %}" class="btn btn-secondary mt-3">Volver</a>
+</div>
+{% endblock %}

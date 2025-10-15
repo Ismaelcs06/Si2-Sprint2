@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Panel{% endblock %}
+
+{% block content %}
+<div class="col-12">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Panel</h3>
+    <a href="{% url 'chat:chat' %}" class="btn btn-primary">
+      <i class="fas fa-robot"></i> Chat con IA
+    </a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted small">Casos totales</div>
+        <div class="fs-3 fw-bold">{{ total_casos }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted small">Documentos totales</div>
+        <div class="fs-3 fw-bold">{{ total_documentos }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted small">Mis casos</div>
+        <div class="fs-3 fw-bold">{{ mis_casos }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <div class="text-muted small">Mis documentos</div>
+        <div class="fs-3 fw-bold">{{ mis_documentos }}</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header">Casos con más documentos</div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>#</th><th>Nro Caso</th><th>Documentos</th></tr></thead>
+        <tbody>
+          {% for c in top_casos_docs %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ c.nroCaso }}</td>
+            <td>{{ c.num_docs|default:0 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted py-3">Sin datos</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
