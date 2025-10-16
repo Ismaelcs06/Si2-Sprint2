@@ -109,3 +109,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Redirecciones después de login/logout
 LOGIN_REDIRECT_URL = 'dashboard:panel'   
 LOGOUT_REDIRECT_URL = 'home'
+
+# ...existing code...
+OPENAI_API_KEY = env("OPENAI_API_KEY", default=None)
+OPENAI_MODEL = env("OPENAI_MODEL", default="gpt-3.5-turbo")
+OPENAI_TEMPERATURE = env("OPENAI_TEMPERATURE", default=0.7)
+OPENAI_MAX_TOKENS = env("OPENAI_MAX_TOKENS", default=1000)
+# ...existing code...

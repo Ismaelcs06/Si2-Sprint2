@@ -17,13 +17,15 @@ class AsistenteIAService:
     Servicio para manejar la integración con OpenAI y búsquedas inteligentes
     """
     
+class AsistenteIAService:
     def __init__(self):
+        # Usa settings para la API key
         self.client = openai.OpenAI(
-            api_key=os.getenv('OPENAI_API_KEY')
+            api_key=getattr(settings, "OPENAI_API_KEY", None)
         )
-        self.modelo = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
-        self.temperatura = float(os.getenv('OPENAI_TEMPERATURE', '0.7'))
-        self.max_tokens = int(os.getenv('OPENAI_MAX_TOKENS', '1000'))
+        self.modelo = getattr(settings, "OPENAI_MODEL", "gpt-3.5-turbo")
+        self.temperatura = float(getattr(settings, "OPENAI_TEMPERATURE", 0.7))
+        self.max_tokens = int(getattr(settings, "OPENAI_MAX_TOKENS", 1000))
         self.db_service = DatabaseQueryService()
     
     def buscar_documentos(self, consulta: str, usuario: Usuario) -> List[Dict[str, Any]]:
