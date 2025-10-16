@@ -1,9 +1,23 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
+from django.urls import path, include
+
+from .views import CasoViewSet, EquipoCasoViewSet, ParteProcesalViewSet, ExpedienteViewSet, CarpetaViewSet
+
+# Crear el router y registrar los viewsets
+router = DefaultRouter()
+router.register(r'casos', CasoViewSet)
+router.register(r'equipos_caso', EquipoCasoViewSet)
+router.register(r'partes_procesales', ParteProcesalViewSet)
+router.register(r'expedientes', ExpedienteViewSet)
+router.register(r'carpetas', CarpetaViewSet)
+
 from . import views
 
 app_name = "casos"
 
 urlpatterns = [
+     path('', include(router.urls)), 
     path("", views.caso_list, name="case_list"),
     path("crear/", views.caso_create, name="case_create"),
     path("<int:pk>/editar/", views.caso_edit, name="case_edit"),

@@ -5,7 +5,6 @@ from .forms import DocumentoForm, VersionDocumentoForm, TipoDocumentoForm, Etapa
 from django.db.models import Max
 from django.utils import timezone
 from casos.models import Carpeta
-
 # Create your views here.
 
 
@@ -168,3 +167,37 @@ def carpeta_detalle(request, carpeta_id=None):
         "documentos/carpeta_detalle.html",
         {"carpeta": carpeta, "subcarpetas": subcarpetas, "documentos": documentos},
     )
+
+
+#TipoDocumentoViewSet
+from rest_framework import viewsets
+from .models import TipoDocumento
+from .serializers import TipoDocumentoSerializer
+
+class TipoDocumentoViewSet(viewsets.ModelViewSet):
+    queryset = TipoDocumento.objects.all()
+    serializer_class = TipoDocumentoSerializer
+
+#EtapaProcesalViewSet
+from .models import EtapaProcesal
+from .serializers import EtapaProcesalSerializer
+
+class EtapaProcesalViewSet(viewsets.ModelViewSet):
+    queryset = EtapaProcesal.objects.all()
+    serializer_class = EtapaProcesalSerializer
+
+#DocumentoViewSet
+from .models import Documento
+from .serializers import DocumentoSerializer
+
+class DocumentoViewSet(viewsets.ModelViewSet):
+    queryset = Documento.objects.all()
+    serializer_class = DocumentoSerializer
+
+#VersionDocumentoViewSet
+from .models import VersionDocumento
+from .serializers import VersionDocumentoSerializer
+
+class VersionDocumentoViewSet(viewsets.ModelViewSet):
+    queryset = VersionDocumento.objects.all()
+    serializer_class = VersionDocumentoSerializer

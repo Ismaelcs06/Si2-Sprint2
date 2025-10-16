@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import environ, os
 from pathlib import Path
+from datetime import timedelta
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,11 +45,23 @@ INSTALLED_APPS = [
     'dashboard',
     'accounts',
     'chat',
+
+    'whitenoise.runserver_nostatic',
+    'rest_framework',
+    'django_filters',
+
+    'corsheaders',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 AUTH_USER_MODEL = 'seguridad.Usuario'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Debe ir lo más arriba posible!
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Para servir estáticos en producción
+
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -116,3 +129,32 @@ OPENAI_MODEL = env("OPENAI_MODEL", default="gpt-3.5-turbo")
 OPENAI_TEMPERATURE = env("OPENAI_TEMPERATURE", default=0.7)
 OPENAI_MAX_TOKENS = env("OPENAI_MAX_TOKENS", default=1000)
 # ...existing code...
+
+
+#
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(weeks=5),   # Ejemplo: 5 semanas (considera si es apropiado para tu caso)
+    'REFRESH_TOKEN_LIFETIME': timedelta(weeks=7),     # Ejemplo: 7 semanas (considera si es apropiado para tu caso)
+
+    # Si se rota el refresh token, generar uno nuevo y descartar el anterior
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    # Cabecera esperada: "Authorization: Bearer <token>"
+    'AUTH_HEADER_TYPES': ('Bearer',),
+
+    # Solo se aceptan AccessTokens para autenticación
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+}
+# --- Django REST Framework Configuration ---
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated', # Por defecto, requiere autenticación
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',  # Habilitar filtrado
+    ),
+}
