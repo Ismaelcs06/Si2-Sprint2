@@ -12,7 +12,7 @@ router.register(r'usuarios_roles', UsuarioRolViewSet)
 router.register(r'roles_permisos', RolPermisoViewSet)
 router.register(r'bitacoras', BitacoraViewSet)
 router.register(r'detalles_bitacora', DetalleBitacoraViewSet)
-
+from . import views
 urlpatterns = [
     path("bitacora/", views.bitacora_list, name="bitacora_list"),
     path("bitacora/<int:pk>/", views.bitacora_detalle, name="bitacora_detalle"),

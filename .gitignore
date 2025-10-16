@@ -16,3 +16,4 @@ staticfiles/
 # Config local
 .env
 .env.local
+c.txt

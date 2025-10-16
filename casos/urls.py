@@ -17,7 +17,7 @@ from . import views
 app_name = "casos"
 
 urlpatterns = [
-     path('', include(router.urls)), 
+    path('', include(router.urls)), 
     path("", views.caso_list, name="case_list"),
     path("crear/", views.caso_create, name="case_create"),
     path("<int:pk>/editar/", views.caso_edit, name="case_edit"),
