@@ -1,6 +1,16 @@
 from django.urls import path
 from . import views
+from .views import TipoDocumentoViewSet, EtapaProcesalViewSet, DocumentoViewSet, VersionDocumentoViewSet
+from . import views  # Importa las vistas desde views.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
+# Crear el router y registrar los viewsets
+router = DefaultRouter()
+router.register(r'tipos_documentos', TipoDocumentoViewSet)
+router.register(r'etapas_procesales', EtapaProcesalViewSet)
+router.register(r'documentos', DocumentoViewSet)
+router.register(r'versiones_documentos', VersionDocumentoViewSet)
 app_name = "documentos"
 
 urlpatterns = [
@@ -25,5 +35,5 @@ urlpatterns = [
     #Navegación por carpetas
     path("carpeta/", views.carpeta_detalle, name="carpeta_raiz"),
     path("carpeta/<int:carpeta_id>/", views.carpeta_detalle, name="carpeta_detalle"),
-
+    path('', include(router.urls)), 
 ]
