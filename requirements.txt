@@ -21,3 +21,12 @@ tqdm==4.67.1
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.2
+
+
+django-cors-headers==4.9.0
+django-filter==25.2
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+PyJWT==2.10.1
+python-dotenv==1.1.1
+whitenoise==6.11.0
