@@ -1,6 +1,16 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .models import Bitacora, DetalleBitacora
+
+from rest_framework.permissions import IsAuthenticated
+
+from rest_framework import viewsets
+from .models import Usuario
+from .serializers import UsuarioSerializer,LogoutSerializer,MyTokenPairSerializer,UsuarioMeSerializer
+from  django.utils import timezone
+from rest_framework.parsers import JSONParser
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import action,permission_classes
 # Create your views here.
 
 @login_required
@@ -31,15 +41,7 @@ def bitacora_detalle(request, pk):
     return render(request, "seguridad/bitacora_detalle.html", {"bitacora": bitacora, "detalles": detalles})
 
 
-from rest_framework.permissions import IsAuthenticated
 
-from rest_framework import viewsets
-from .models import Usuario
-from .serializers import UsuarioSerializer,LogoutSerializer,MyTokenPairSerializer,UsuarioMeSerializer
-from  django.utils import timezone
-from rest_framework.parsers import JSONParser
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.decorators import action,permission_classes
 
 
 
