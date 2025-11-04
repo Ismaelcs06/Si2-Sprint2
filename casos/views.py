@@ -5,12 +5,54 @@ from .forms import CasoForm, EquipoCasoForm, ParteProcesalForm, ExpedienteForm, 
 from actores.models import Actor, Cliente
 from datetime import date
 from .utils import registrar_evento_exp
+from django.db.models import Q
+from django.views.decorators.http import require_POST
+from documentos.models import Documento
 
 
 # ======= CASOS ======= #
 def caso_list(request):
+    # Recuperamos los parámetros enviados desde el formulario
+    q = request.GET.get("q", "").strip()
+    estado = request.GET.get("estado", "").strip()
+    prioridad = request.GET.get("prioridad", "").strip()
+    desde = request.GET.get("desde", "").strip()
+    hasta = request.GET.get("hasta", "").strip()
+
+    # Base Query
     casos = Caso.objects.all().order_by("-fechaInicio")
-    return render(request, "casos/caso_list.html", {"casos": casos})
+
+    # 🔍 Filtro de búsqueda libre
+    if q:
+        casos = casos.filter(
+            Q(nroCaso__icontains=q)
+            | Q(tipoCaso__icontains=q)
+            | Q(descripcion__icontains=q)
+        )
+
+    # 🔍 Filtro por estado
+    if estado:
+        casos = casos.filter(estado=estado)
+
+    # 🔍 Filtro por prioridad
+    if prioridad:
+        casos = casos.filter(prioridad=prioridad)
+
+    # 🔍 Filtro por rango de fechas
+    if desde:
+        casos = casos.filter(fechaInicio__gte=desde)
+    if hasta:
+        casos = casos.filter(fechaInicio__lte=hasta)
+
+    context = {
+        "casos": casos,
+        "q": q,
+        "estado": estado,
+        "prioridad": prioridad,
+        "desde": desde,
+        "hasta": hasta,
+    }
+    return render(request, "casos/caso_list.html", context)
 
 
 def caso_create(request):
@@ -75,6 +117,23 @@ def equipo_caso_add(request, caso_id):
         form = EquipoCasoForm()
     return render(request, "casos/equipo_form.html", {"form": form, "caso": caso})
 
+@require_POST
+def equipo_caso_delete(request, pk):
+    """
+    Elimina un miembro del equipo de un caso con confirmación y auditoría.
+    """
+    equipo = get_object_or_404(EquipoCaso, pk=pk)
+    caso_id = equipo.caso.id
+    actor_nombre = f"{equipo.actor.nombres} {equipo.actor.apellidoPaterno}"
+
+    # ⚙️ Auditoría (opcional)
+    if hasattr(equipo, "modificado_por"):
+        equipo.modificado_por = request.user
+
+    equipo.delete()
+
+    messages.success(request, f"Se eliminó del equipo al actor {actor_nombre}.")
+    return redirect("casos:equipo_list", caso_id=caso_id)
 
 # ======= PARTE PROCESAL ======= #
 def parte_procesal_list(request, caso_id):
@@ -192,6 +251,81 @@ def expediente_timeline(request, expediente_id):
         {"expediente": expediente, "eventos": eventos},
     )
 
+def expediente_detail(request, expediente_id):
+    """
+    Vista unificada del expediente:
+    - Información general del expediente
+    - Datos del caso
+    - Timeline de eventos
+    - Carpetas vinculadas
+    """
+    expediente = get_object_or_404(
+        Expediente.objects.select_related("caso"), pk=expediente_id
+    )
+    eventos = expediente.eventos.select_related("usuario").order_by("-fecha")[:5]  # últimos 5 eventos
+    carpetas = Carpeta.objects.filter(expediente=expediente, carpetaPadre__isnull=True).order_by("nombre")
+
+    context = {
+        "expediente": expediente,
+        "eventos": eventos,
+        "carpetas": carpetas,
+    }
+    return render(request, "casos/expediente_detail.html", context)
+
+def expediente_by_caso(request, caso_id):
+    caso = get_object_or_404(Caso, pk=caso_id)
+    expediente = getattr(caso, "expediente", None)
+    if expediente is None:
+        expediente = Expediente.objects.create(
+            caso=caso,
+            nroExpediente=f"EXP-{caso.id:04d}",
+            estado="ABIERTO",
+            fechaCreacion=date.today(),
+            creado_por=getattr(caso, "creado_por", None),
+        )
+    return redirect("casos:expediente_detail", expediente_id=expediente.id)
+
+
+
+
+
+def carpeta_detalle(request, carpeta_id):
+    """
+    Muestra el contenido de una carpeta: subcarpetas y documentos asociados.
+    """
+    carpeta = get_object_or_404(Carpeta, pk=carpeta_id)
+
+    # Subcarpetas directas
+    subcarpetas = Carpeta.objects.filter(carpetaPadre=carpeta).order_by("nombre")
+
+    # Documentos dentro de esta carpeta
+    documentos = Documento.objects.filter(carpeta=carpeta).select_related(
+        "tipoDocumento", "etapaProcesal"
+    ).order_by("-fechaDoc")
+
+    context = {
+        "carpeta": carpeta,
+        "subcarpetas": subcarpetas,
+        "documentos": documentos,
+    }
+
+    return render(request, "casos/carpeta_detalle.html", context)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -200,11 +334,14 @@ from .models import Caso
 from .forms import CasoForm, EquipoCasoForm, ParteProcesalForm
 from actores.models import Actor, Cliente
 from rest_framework import viewsets
+
+
 def caso_list(request):
     casos = Caso.objects.all().order_by("-fechaInicio")
     return render(request, "casos/caso_list.html", {"casos": casos})
 
-def caso_create(request):
+
+""" def caso_create(request):
     if request.method == "POST":
         form = CasoForm(request.POST)
         if form.is_valid():
@@ -213,7 +350,7 @@ def caso_create(request):
             return redirect("casos:case_list")
     else:
         form = CasoForm()
-    return render(request, "casos/caso_form.html", {"form": form})
+    return render(request, "casos/caso_form.html", {"form": form}) """
 
 def caso_edit(request, pk):
     caso = get_object_or_404(Caso, pk=pk)

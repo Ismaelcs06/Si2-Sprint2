@@ -33,6 +33,16 @@ class Caso(models.Model):
 
     creadoEn = models.DateTimeField(auto_now_add=True)
     actualizadoEn = models.DateTimeField(auto_now=True)
+    
+    @property
+    def cliente_principal(self):
+        parte = self.parteprocesal_set.filter(rolProcesal="DEMANDANTE").select_related("cliente__actor").first()
+        return parte.cliente.actor.nombres + " " + parte.cliente.actor.apellidoPaterno if parte else "—"
+
+    @property
+    def abogado_responsable(self):
+        miembro = self.equipocaso_set.filter(rolEnEquipo="RESPONSABLE").select_related("actor").first()
+        return miembro.actor.nombres + " " + miembro.actor.apellidoPaterno if miembro else "—"
 
 
 # ==========================
@@ -155,7 +165,10 @@ class Expediente(models.Model):
     def __str__(self):
         return f"Expediente {self.nroExpediente} / {self.caso.nroCaso}"
 
-
+    @property
+    def cliente_principal(self):
+        parte = self.parteprocesal_set.filter(rolProcesal="DEMANDANTE").select_related("cliente__actor").first()
+        return parte.cliente.actor.nombres + " " + parte.cliente.actor.apellidoPaterno if parte else "—"
 
 # ==========================
 # CARPETA (en el EXPEDIENTE, con jerarquía opcional)
@@ -227,3 +240,6 @@ class EventoExpediente(models.Model):
 
     def __str__(self):
         return f"[{self.fecha:%d/%m/%Y %H:%M}] {self.tipo}: {self.descripcion}"
+
+
+

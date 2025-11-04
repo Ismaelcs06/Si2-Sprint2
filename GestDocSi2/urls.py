@@ -42,6 +42,11 @@ urlpatterns = [
     # Gestion de Bitacora
     
     path("seguridad/", include(("seguridad.urls", "seguridad"), namespace="seguridad")),
+    
+    # Gestión de reportes
+    
+    path("reportes/", include(("reportes.urls", "reportes"), namespace="reportes")),
+
 
 ]
 

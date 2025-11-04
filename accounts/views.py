@@ -12,9 +12,18 @@ from .forms import (
 )
 
 # ========================
-# USUARIOS
+# USUARIOS (CRUD COMPLETO)
 # ========================
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db import transaction
+from .forms import UserCreateForm
+from seguridad.models import Usuario
+
+@login_required
 def users_list(request):
+    """Listado de usuarios con búsqueda"""
     q = request.GET.get("q", "").strip()
     users = Usuario.objects.all().order_by("-date_joined")
 
@@ -24,40 +33,102 @@ def users_list(request):
     return render(request, "accounts/users_list.html", {"users": users, "q": q})
 
 
+@login_required
 def user_create(request):
+    """Crea un nuevo usuario"""
     if request.method == "POST":
         form = UserCreateForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Usuario creado correctamente.")
+            messages.success(request, "✅ Usuario creado correctamente.")
             return redirect("accounts:user_list")
     else:
         form = UserCreateForm()
-    return render(request, "accounts/user_form.html", {"form": form})
+    return render(request, "accounts/user_form.html", {"form": form, "accion": "Crear"})
+
+
+@login_required
+def user_update(request, pk):
+    """Edita un usuario existente"""
+    user = get_object_or_404(Usuario, pk=pk)
+    if request.method == "POST":
+        form = UserCreateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"✏️ Usuario '{user.username}' actualizado correctamente.")
+            return redirect("accounts:user_list")
+    else:
+        form = UserCreateForm(instance=user)
+    return render(request, "accounts/user_form.html", {"form": form, "accion": "Editar"})
+
+
+@login_required
+@transaction.atomic
+def user_delete(request, pk):
+    """Elimina un usuario con confirmación"""
+    user = get_object_or_404(Usuario, pk=pk)
+    if request.method == "POST":
+        user.delete()
+        messages.success(request, f"🗑️ Usuario '{user.username}' eliminado correctamente.")
+        return redirect("accounts:user_list")
+    return render(request, "accounts/user_confirm_delete.html", {"user": user})
 
 
 # ========================
 # ROLES
 # ========================
 def roles_list(request):
+    """Lista todos los roles con búsqueda y orden alfabético"""
+    q = request.GET.get("q", "").strip()
     roles = Rol.objects.all().order_by("nombre")
-    return render(request, "accounts/roles_list.html", {"roles": roles})
+
+    if q:
+        roles = roles.filter(nombre__icontains=q) | roles.filter(descripcion__icontains=q)
+
+    return render(request, "accounts/roles_list.html", {"roles": roles, "q": q})
 
 
 def role_create(request):
+    """Crea un nuevo rol"""
     if request.method == "POST":
         form = RoleForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Rol creado correctamente.")
+            messages.success(request, "✅ Rol creado correctamente.")
             return redirect("accounts:roles_list")
     else:
         form = RoleForm()
-    return render(request, "accounts/role_form.html", {"form": form})
+    return render(request, "accounts/role_form.html", {"form": form, "accion": "Crear"})
+
+
+def role_update(request, pk):
+    """Edita un rol existente"""
+    rol = get_object_or_404(Rol, pk=pk)
+    if request.method == "POST":
+        form = RoleForm(request.POST, instance=rol)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"✏️ Rol '{rol.nombre}' actualizado correctamente.")
+            return redirect("accounts:roles_list")
+    else:
+        form = RoleForm(instance=rol)
+    return render(request, "accounts/role_form.html", {"form": form, "accion": "Editar"})
+
+
+@transaction.atomic
+def role_delete(request, pk):
+    """Elimina un rol con confirmación"""
+    rol = get_object_or_404(Rol, pk=pk)
+    if request.method == "POST":
+        rol.delete()
+        messages.success(request, f"🗑️ Rol '{rol.nombre}' eliminado correctamente.")
+        return redirect("accounts:roles_list")
+    return render(request, "accounts/role_confirm_delete.html", {"rol": rol})
 
 
 @transaction.atomic
 def assign_roles(request, user_id):
+    """Asigna roles dinámicamente a un usuario"""
     usuario = get_object_or_404(Usuario, pk=user_id)
     if request.method == "POST":
         form = RoleAssignForm(request.POST, usuario=usuario)
@@ -72,14 +143,12 @@ def assign_roles(request, user_id):
             # Eliminar roles removidos
             UsuarioRol.objects.filter(usuario=usuario, rol__in=(actuales - nuevos)).delete()
 
-            messages.success(request, "Roles actualizados correctamente.")
+            messages.success(request, f"✅ Roles de {usuario.username} actualizados correctamente.")
             return redirect("accounts:user_list")
     else:
         form = RoleAssignForm(usuario=usuario)
 
     return render(request, "accounts/assign_roles.html", {"form": form, "usuario": usuario})
-
-
 # ========================
 # ACTORES
 # ========================
@@ -148,6 +217,27 @@ def actors_list(request):
         })
 
     return render(request, "accounts/actors_list.html", {"actores_data": actores_data, "tipo": tipo})
+
+def actor_detail(request, pk):
+    """Muestra el detalle completo del actor y su usuario"""
+    actor = get_object_or_404(Actor.objects.select_related("usuario"), pk=pk)
+
+    tipo = actor.tipoActor.upper()
+    datos_especificos = None
+
+    if tipo == "ABO" and hasattr(actor, "abogado"):
+        datos_especificos = actor.abogado
+    elif tipo == "CLI" and hasattr(actor, "cliente"):
+        datos_especificos = actor.cliente
+    elif tipo == "ASI" and hasattr(actor, "asistente"):
+        datos_especificos = actor.asistente
+
+    return render(request, "accounts/actor_detail.html", {
+        "actor": actor,
+        "datos_especificos": datos_especificos,
+        "tipo": tipo
+    })
+
 
 
 # ========================

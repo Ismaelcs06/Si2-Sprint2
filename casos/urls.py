@@ -5,19 +5,19 @@ from django.urls import path, include
 from .views import CasoViewSet, EquipoCasoViewSet, ParteProcesalViewSet, ExpedienteViewSet, CarpetaViewSet
 
 # Crear el router y registrar los viewsets
-router = DefaultRouter()
+""" router = DefaultRouter()
 router.register(r'casos', CasoViewSet)
 router.register(r'equipos_caso', EquipoCasoViewSet)
 router.register(r'partes_procesales', ParteProcesalViewSet)
 router.register(r'expedientes', ExpedienteViewSet)
 router.register(r'carpetas', CarpetaViewSet)
-
+ """
 from . import views
 
 app_name = "casos"
 
 urlpatterns = [
-     path('', include(router.urls)), 
+   #  path('', include(router.urls)), 
     path("", views.caso_list, name="case_list"),
     path("crear/", views.caso_create, name="case_create"),
     path("<int:pk>/editar/", views.caso_edit, name="case_edit"),
@@ -26,6 +26,7 @@ urlpatterns = [
     # EquipoCaso
     path("<int:caso_id>/equipo/", views.equipo_caso_list, name="equipo_list"),
     path("<int:caso_id>/equipo/agregar/", views.equipo_caso_add, name="equipo_add"),
+    path("equipo/<int:pk>/eliminar/", views.equipo_caso_delete, name="equipo_delete"), 
 
     # Parte Procesal
     path("<int:caso_id>/partes/", views.parte_procesal_list, name="parte_list"),
@@ -45,6 +46,11 @@ urlpatterns = [
     #TimeLine
 
     path('expediente/<int:expediente_id>/timeline/', views.expediente_timeline, name='expediente_timeline'),
+
+    path("expediente/<int:expediente_id>/", views.expediente_detail, name="expediente_detail"),
+    path("caso/<int:caso_id>/expediente/", views.expediente_by_caso, name="expediente_by_caso"),
+    
+    path("carpeta/<int:carpeta_id>/", views.carpeta_detalle, name="carpeta_detalle"),
 
 
 ]

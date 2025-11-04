@@ -3,31 +3,39 @@
 
 {% block content %}
 <div class="col-12">
+  <!-- Encabezado -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="m-0">Lista de Actores</h3>
+    <h3 class="m-0">
+      👥 Lista de Actores
+      {% if tipo %}
+        <small class="text-muted">({{ tipo }})</small>
+      {% endif %}
+    </h3>
+    <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-primary btn-sm">
+      ← Volver a usuarios
+    </a>
   </div>
 
   <!-- Filtro por tipo -->
   <form method="get" class="mb-4">
     <div class="row g-2 align-items-center">
       <div class="col-auto">
-        <label class="form-label mb-0">Filtrar por tipo:</label>
+        <label class="form-label mb-0 fw-semibold">Filtrar por tipo:</label>
       </div>
       <div class="col-auto">
-        
         <select name="tipo" class="form-select form-select-sm" onchange="this.form.submit()">
           <option value="" {% if not tipo %}selected{% endif %}>Todos</option>
-          <option value="ABO"   {% if tipo == 'ABO' %}selected{% endif %}>Abogado</option>
-          <option value="CLI"   {% if tipo == 'CLI' %}selected{% endif %}>Cliente</option>
-          <option value="ASI" {% if tipo == 'ASI' %}selected{% endif %}>Asistente</option>
+          <option value="ABO" {% if tipo == 'ABO' %}selected{% endif %}>Abogados</option>
+          <option value="CLI" {% if tipo == 'CLI' %}selected{% endif %}>Clientes</option>
+          <option value="ASI" {% if tipo == 'ASI' %}selected{% endif %}>Asistentes</option>
         </select>
       </div>
     </div>
   </form>
 
-  <!-- Tabla -> tarjetas en móvil -->
+  <!-- Tabla -->
   <div class="table-responsive stack-xs table-xs-compact">
-    <table class="table table-sm table-hover align-middle shadow-sm">
+    <table class="table table-hover align-middle shadow-sm">
       <thead class="table-light">
         <tr>
           <th>Tipo</th>
@@ -36,56 +44,63 @@
           <th>Teléfono</th>
           <th>Usuario</th>
           <th>Estado</th>
-          <th>Datos específicos</th>
+          <th class="text-end">Acciones</th>
         </tr>
       </thead>
       <tbody>
         {% for item in actores_data %}
           {% with a=item.actor %}
           <tr>
-            <td data-label="Tipo">{{ a.tipoActor }}</td>
+            <!-- Tipo -->
+            <td data-label="Tipo">
+              {% if a.tipoActor == "ABO" %}
+                🧑‍⚖️ Abogado
+              {% elif a.tipoActor == "CLI" %}
+                👤 Cliente
+              {% elif a.tipoActor == "ASI" %}
+                🧑‍💼 Asistente
+              {% else %}
+                {{ a.tipoActor }}
+              {% endif %}
+            </td>
 
-            <td class="td-wrap" data-label="Nombre completo">
+            <!-- Nombre -->
+            <td data-label="Nombre completo" class="fw-semibold">
               {{ a.nombres }} {{ a.apellidoPaterno }} {{ a.apellidoMaterno }}
             </td>
 
-            <td class="td-nowrap" data-label="CI">{{ a.ci }}</td>
+            <!-- CI -->
+            <td data-label="CI">{{ a.ci }}</td>
 
-            <td class="td-nowrap" data-label="Teléfono">
-              {{ a.telefono|default:"—" }}
-            </td>
+            <!-- Teléfono -->
+            <td data-label="Teléfono">{{ a.telefono|default:"—" }}</td>
 
+            <!-- Usuario -->
             <td data-label="Usuario">
               {% if a.usuario %}
-                {{ a.usuario.username }}
+                <span class="text-primary">{{ a.usuario.username }}</span>
               {% else %}
                 <span class="text-muted">—</span>
               {% endif %}
             </td>
 
+            <!-- Estado -->
             <td data-label="Estado">
-              {% if a.estadoActor == "ACTIVO" %}
-                <span class="badge bg-success">{{ a.estadoActor }}</span>
-              {% else %}
-                <span class="badge bg-secondary">{{ a.estadoActor }}</span>
-              {% endif %}
+              <span class="badge {% if a.estadoActor == 'ACTIVO' %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ a.estadoActor }}
+              </span>
             </td>
 
-            <td data-label="Datos específicos">
-              {% if item.info_completa %}
-                <span class="badge bg-success">Completo</span>
-              {% else %}
-                <!-- XS: icon-only, SM+: texto -->
-                <a href="{{ item.enlace_completar }}"
-                   class="btn btn-outline-warning btn-sm d-inline d-sm-none"
-                   title="Completar datos">
-                  <i class="fa fa-edit"></i>
-                </a>
-                <a href="{{ item.enlace_completar }}"
-                   class="btn btn-outline-warning btn-sm d-none d-sm-inline-flex">
-                  <i class="fa fa-edit me-1"></i> Completar datos
-                </a>
-              {% endif %}
+            <!-- Acciones -->
+            <td class="text-end">
+              <div class="btn-group">
+                <a href="{% url 'accounts:actor_detail' a.id %}" class="btn btn-outline-primary btn-sm" title="Ver detalle">👁</a>
+                {% if item.info_completa %}
+                  <span class="badge bg-success align-self-center ms-2">Completo</span>
+                {% else %}
+                  <a href="{{ item.enlace_completar }}" class="btn btn-outline-warning btn-sm" title="Completar datos">✏️</a>
+                {% endif %}
+              </div>
             </td>
           </tr>
           {% endwith %}

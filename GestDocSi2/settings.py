@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'dashboard',
     'accounts',
     'chat',
+    'reportes',
 
     'whitenoise.runserver_nostatic',
     'rest_framework',

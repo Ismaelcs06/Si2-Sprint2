@@ -1,12 +1,8 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.db.models import Count
 from casos.models import Caso
 from documentos.models import Documento, VersionDocumento
-# Si necesitas datos del actor:
 from actores.models import Actor
 
 class PanelView(LoginRequiredMixin, TemplateView):
@@ -15,12 +11,13 @@ class PanelView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # KPIs globales básicos
+
+        # Indicadores generales
         ctx["total_casos"] = Caso.objects.count()
         ctx["total_documentos"] = Documento.objects.count()
         ctx["total_versiones"] = VersionDocumento.objects.count()
 
-        # KPIs del usuario (si tiene Actor):
+        # Datos del usuario (si tiene Actor)
         actor = getattr(self.request.user, "actor", None)
         if actor:
             casos_usuario = Caso.objects.filter(equipocaso__actor=actor).distinct()
@@ -32,10 +29,16 @@ class PanelView(LoginRequiredMixin, TemplateView):
             ctx["mis_casos"] = 0
             ctx["mis_documentos"] = 0
 
-        # Ranking simple (top 5 por # documentos)
+        # Casos más activos
         ctx["top_casos_docs"] = (
             Caso.objects.annotate(num_docs=Count("expediente__carpetas__documentos"))
-                .order_by("-num_docs")[:5]
+            .filter(num_docs__gt=0)
+            .order_by("-num_docs")[:5]
         )
-        return ctx
 
+        # Últimos documentos
+        ctx["ultimos_documentos"] = Documento.objects.select_related(
+            "carpeta", "tipoDocumento"
+        ).order_by("-creadoEn")[:5]
+
+        return ctx

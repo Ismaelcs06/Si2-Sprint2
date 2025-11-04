@@ -5,21 +5,105 @@ from .forms import DocumentoForm, VersionDocumentoForm, TipoDocumentoForm, Etapa
 from django.db.models import Max
 from django.utils import timezone
 from casos.models import Carpeta
+from django.db.models import Q
+from datetime import datetime
+from django.core.paginator import Paginator
 # Create your views here.
 
 
 # ======= DOCUMENTOS ======= #
+
 def documento_list(request):
-    documentos = Documento.objects.select_related("carpeta", "tipoDocumento").all()
-    return render(request, "documentos/documento_list.html", {"documentos": documentos})
+    """
+    Lista los documentos con filtros, paginación, orden dinámico y búsqueda.
+    """
+    # 🔹 Captura de parámetros
+    q = request.GET.get("q", "").strip()
+    tipo = request.GET.get("tipo", "")
+    etapa = request.GET.get("etapa", "")
+    desde = request.GET.get("desde", "")
+    hasta = request.GET.get("hasta", "")
+    ordenar = request.GET.get("ordenar", "-fechaDoc")
+
+    # 🔹 Consulta base
+    documentos = Documento.objects.select_related("carpeta", "tipoDocumento", "etapaProcesal").all()
+
+    # 🔍 Búsqueda por texto o palabra clave
+    if q:
+        documentos = documentos.filter(
+            Q(nombreDocumento__icontains=q) | Q(palabraClave__icontains=q)
+        )
+
+    # 🔍 Filtros específicos
+    if tipo:
+        documentos = documentos.filter(tipoDocumento__id=tipo)
+
+    if etapa:
+        documentos = documentos.filter(etapaProcesal__id=etapa)
+
+    # 🔍 Rango de fechas
+    if desde:
+        try:
+            documentos = documentos.filter(fechaDoc__gte=datetime.strptime(desde, "%Y-%m-%d").date())
+        except ValueError:
+            pass
+
+    if hasta:
+        try:
+            documentos = documentos.filter(fechaDoc__lte=datetime.strptime(hasta, "%Y-%m-%d").date())
+        except ValueError:
+            pass
+
+    # 🔄 Orden dinámico
+    if ordenar in ["nombreDocumento", "-nombreDocumento", "fechaDoc", "-fechaDoc"]:
+        documentos = documentos.order_by(ordenar)
+    else:
+        documentos = documentos.order_by("-fechaDoc")
+
+    # 📄 Paginación
+    paginator = Paginator(documentos, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # 📦 Contexto
+    context = {
+        "documentos": page_obj,
+        "page_obj": page_obj,
+        "tipos": TipoDocumento.objects.filter(activo=True).order_by("nombre"),
+        "etapas": EtapaProcesal.objects.filter(estado="ACTIVO").order_by("nombre"),
+        "q": q,
+        "tipo": tipo,
+        "etapa": etapa,
+        "desde": desde,
+        "hasta": hasta,
+        "ordenar": ordenar,
+    }
+
+    return render(request, "documentos/documento_list.html", context)
 
 
 def documento_create(request):
+    """
+    Crea un nuevo documento. Si se pasa ?carpeta=<id>, el documento
+    se asocia automáticamente a esa carpeta y el formulario se preinicializa.
+    """
+    carpeta_id = request.GET.get("carpeta")
+    carpeta_preseleccionada = None
+
+    # Si viene una carpeta específica
+    if carpeta_id:
+        carpeta_preseleccionada = get_object_or_404(Carpeta, pk=carpeta_id)
+
     if request.method == "POST":
         form = DocumentoForm(request.POST, request.FILES)
         if form.is_valid():
             documento = form.save(commit=False)
-            documento.creado_por = request.user  # registra usuario creador
+            documento.creado_por = request.user
+
+            # Asigna carpeta preseleccionada si corresponde
+            if carpeta_preseleccionada:
+                documento.carpeta = carpeta_preseleccionada
+
             documento.save()
 
             # 🧾 Registrar evento en el timeline del expediente
@@ -36,11 +120,20 @@ def documento_create(request):
                 print("⚠️ No se pudo registrar evento de documento:", e)
 
             messages.success(request, f"Documento '{documento.nombreDocumento}' registrado correctamente.")
-            return redirect("documentos:documento_list")
-    else:
-        form = DocumentoForm()
 
-    return render(request, "documentos/documento_form.html", {"form": form})
+            # Si venía desde una carpeta, volver allí
+            if carpeta_preseleccionada:
+                return redirect("documentos:carpeta_detalle", carpeta_id=carpeta_preseleccionada.id)
+            else:
+                return redirect("documentos:documento_list")
+
+        else:
+            messages.error(request, "Corrige los errores del formulario antes de continuar.")
+    else:
+        form = DocumentoForm(initial={"carpeta": carpeta_preseleccionada})
+
+    context = {"form": form, "carpeta": carpeta_preseleccionada}
+    return render(request, "documentos/documento_form.html", context)
 
 
 def documento_edit(request, doc_id):
